@@ -12,7 +12,6 @@ namespace Scotland2_Mono.Loader;
 public class NativePluginLoader
 {
     private readonly List<NativePluginInfo> _pluginInfos = new();
-    public string PluginDirectory { get; }
 
     /// <summary>
     /// Gets a read-only collection of all loaded plugin information.
@@ -37,10 +36,8 @@ public class NativePluginLoader
     /// <summary>
     /// Initializes a new instance of the NativePluginLoader.
     /// </summary>
-    /// <param name="pluginDirectory">The directory containing the DLL files to load.</param>
-    public NativePluginLoader(string pluginDirectory)
+    public NativePluginLoader()
     {
-        PluginDirectory = pluginDirectory ?? throw new ArgumentNullException(nameof(pluginDirectory));
     }
 
     /// <summary>
@@ -48,13 +45,16 @@ public class NativePluginLoader
     /// </summary>
     /// <param name="searchPattern">The search pattern for DLL files (default: "*.dll").</param>
     /// <param name="searchOption">Whether to search subdirectories (default: TopDirectoryOnly).</param>
+    /// <param name="pluginDirectory">The directory containing the DLL files to load.</param>
+    /// 
     /// <returns>The number of successfully loaded plugins.</returns>
-    public int LoadPlugins(string searchPattern = "*.dll", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+    public IList<NativePluginInfo> LoadPlugins(string pluginDirectory, string searchPattern = "*.dll",
+        SearchOption searchOption = SearchOption.TopDirectoryOnly)
     {
-        if (!Directory.Exists(PluginDirectory))
+        if (!Directory.Exists(pluginDirectory))
         {
-            Plugin.Log.Warn($"Plugin directory does not exist: {PluginDirectory}");
-            return 0;
+            Plugin.Log.Warn($"Plugin directory does not exist: {pluginDirectory}");
+            return [];
         }
 
         _pluginInfos.Clear();
@@ -62,38 +62,47 @@ public class NativePluginLoader
         string[] dllFiles;
         try
         {
-            dllFiles = Directory.GetFiles(PluginDirectory, searchPattern, searchOption);
+            dllFiles = Directory.GetFiles(pluginDirectory, searchPattern, searchOption);
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Failed to enumerate DLL files in {PluginDirectory}: {ex.Message}");
-            return 0;
+            Plugin.Log.Error($"Failed to enumerate DLL files in {pluginDirectory}: {ex.Message}");
+            return [];
         }
 
-        Plugin.Log.Info($"Found {dllFiles.Length} DLL file(s) in {PluginDirectory}");
+        Plugin.Log.Info($"Found {dllFiles.Length} DLL file(s) in {pluginDirectory}");
 
-        foreach (var dllFile in dllFiles)
+        var binaries = dllFiles.Select(path => new NativeBinary(path)).ToList();
+        var sortedBinaries = TopologicalPluginSorter.SortPlugins(binaries);
+
+        // Load plugins in sorted order
+        Plugin.Log.Info($"Sorted {sortedBinaries.Count} binaries");
+        foreach (var binary in sortedBinaries)
         {
-            LoadPlugin(dllFile);
+            Plugin.Log.Debug($"Plugin: {binary.Name}, Dependencies: {string.Join(", ", binary.Dependencies ?? [])}");
         }
+
+        var justLoaded = sortedBinaries.Select(LoadPlugin).ToList();
+        _pluginInfos.AddRange(justLoaded);
+
 
         Plugin.Log.Info($"Loaded {LoadedCount}/{TotalCount} plugins successfully");
-        return LoadedCount;
+        return justLoaded;
     }
 
     /// <summary>
     /// Loads a single native DLL file as a plugin.
     /// </summary>
-    /// <param name="dllPath">The path to the DLL file.</param>
+    /// <param name="binary">The path to the DLL file.</param>
     /// <returns>True if the plugin was loaded successfully, false otherwise.</returns>
-    public bool LoadPlugin(string dllPath)
+    public NativePluginInfo LoadPlugin(NativeBinary binary)
     {
+        var dllPath = binary.FilePath;
         if (!File.Exists(dllPath))
         {
-            var errorInfo = NativePluginInfo.Error(dllPath, "File not found");
-            _pluginInfos.Add(errorInfo);
+            var errorInfo = NativePluginInfo.Error(binary, "File not found");
             Plugin.Log.Warn($"DLL file not found: {dllPath}");
-            return false;
+            return errorInfo;
         }
 
         try
@@ -106,24 +115,21 @@ public class NativePluginLoader
             if (handle.IsNull)
             {
                 var error = NativeLoaderHelper.GetLastError();
-                var errorInfo = NativePluginInfo.Error(dllPath, $"Failed to load native library: {error}");
-                _pluginInfos.Add(errorInfo);
+                var errorInfo = NativePluginInfo.Error(binary, $"Failed to load native library: {error}");
                 Plugin.Log.Error($"Failed to load {Path.GetFileName(dllPath)}: {error}");
-                return false;
+                return errorInfo;
             }
 
-            var pluginInfo = NativePluginInfo.Loaded(handle, dllPath);
-            _pluginInfos.Add(pluginInfo);
+            var pluginInfo = NativePluginInfo.Loaded(binary, handle);
 
             Plugin.Log.Info($"Successfully loaded native plugin: {pluginInfo.Name} (handle: 0x{handle:X})");
-            return true;
+            return pluginInfo;
         }
         catch (Exception ex)
         {
-            var errorInfo = NativePluginInfo.Error(dllPath, $"Unexpected error: {ex.Message}");
-            _pluginInfos.Add(errorInfo);
+            var errorInfo = NativePluginInfo.Error(binary, $"Unexpected error: {ex.Message}");
             Plugin.Log.Error($"Failed to load {Path.GetFileName(dllPath)}: {ex.GetType().Name} - {ex.Message}");
-            return false;
+            return errorInfo;
         }
     }
 

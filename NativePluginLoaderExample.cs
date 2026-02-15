@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Scotland2_Mono.Loader;
 
@@ -22,11 +23,11 @@ public static class NativePluginLoaderExample
     {
         // Create a plugin loader for a specific directory
         string pluginDir = Path.Combine(Environment.CurrentDirectory, "NativePlugins");
-        var loader = new NativePluginLoader(pluginDir);
+        var loader = new NativePluginLoader();
 
         // Load all DLL files from the directory
-        int loadedCount = loader.LoadPlugins();
-        Plugin.Log.Info($"Loaded {loadedCount} native plugins");
+        var loadedCount = loader.LoadPlugins(pluginDir);
+        Plugin.Log.Info($"Loaded {loadedCount.Count} native plugins");
 
         // Get summary
         Plugin.Log.Info(loader.GetSummary());
@@ -49,6 +50,16 @@ public static class NativePluginLoaderExample
         {
             Plugin.Log.Info($"Found plugin: {specificPlugin}");
             
+            // Show dependencies
+            if (specificPlugin.Dependencies!.Count > 0)
+            {
+                Plugin.Log.Info($"  Dependencies:");
+                foreach (var dep in specificPlugin.Dependencies)
+                {
+                    Plugin.Log.Info($"    - {dep}");
+                }
+            }
+            
             // You can get function pointers from the loaded library
             IntPtr functionPtr = NativeLoaderHelper.GetFunctionPointer(specificPlugin.LibraryHandle, "MyExportedFunction");
             if (functionPtr != IntPtr.Zero)
@@ -68,11 +79,11 @@ public static class NativePluginLoaderExample
     public static void LoadPluginsRecursiveExample()
     {
         string pluginDir = Path.Combine(Environment.CurrentDirectory, "NativePlugins");
-        var loader = new NativePluginLoader(pluginDir);
+        var loader = new NativePluginLoader();
 
         // Load all DLL files recursively from subdirectories
-        int loadedCount = loader.LoadPlugins("*.dll", SearchOption.AllDirectories);
-        Plugin.Log.Info($"Loaded {loadedCount} native plugins from {pluginDir} and subdirectories");
+        var loadedCount = loader.LoadPlugins(pluginDir, "*.dll", SearchOption.AllDirectories);
+        Plugin.Log.Info($"Loaded {loadedCount.Count} native plugins from {pluginDir} and subdirectories");
     }
 
     /// <summary>
@@ -81,13 +92,14 @@ public static class NativePluginLoaderExample
     public static void LoadSinglePluginExample()
     {
         string pluginDir = Path.Combine(Environment.CurrentDirectory, "NativePlugins");
-        var loader = new NativePluginLoader(pluginDir);
+        var loader = new NativePluginLoader();
 
         // Load a single DLL file
         string dllPath = Path.Combine(pluginDir, "MyNativePlugin.dll");
-        bool success = loader.LoadPlugin(dllPath);
+        var binary = new NativeBinary(dllPath);
+        var info = loader.LoadPlugin(binary);
 
-        if (success)
+        if (info.IsLoaded)
         {
             Plugin.Log.Info($"Successfully loaded native plugin from {dllPath}");
         }
@@ -103,8 +115,8 @@ public static class NativePluginLoaderExample
     public static void CallNativeFunctionExample()
     {
         string pluginDir = Path.Combine(Environment.CurrentDirectory, "NativePlugins");
-        var loader = new NativePluginLoader(pluginDir);
-        loader.LoadPlugins();
+        var loader = new NativePluginLoader();
+        loader.LoadPlugins(pluginDir);
 
         var plugin = loader.GetPluginByName("MyNativePlugin");
         if (plugin != null && plugin.IsLoaded)
@@ -125,14 +137,77 @@ public static class NativePluginLoaderExample
     }
 
     /// <summary>
+    /// Example of loading plugins in dependency order using topological sort.
+    /// </summary>
+    public static void LoadPluginsInDependencyOrderExample()
+    {
+        string pluginDir = Path.Combine(Environment.CurrentDirectory, "NativePlugins");
+        var loader = new NativePluginLoader();
+        
+        // Load all plugins first (without dependencies resolved)
+        loader.LoadPlugins(pluginDir);
+        
+        // Get all successfully loaded plugins
+        var loadedPlugins = loader.GetLoadedPlugins().ToList();
+        
+        Plugin.Log.Info($"Loaded {loadedPlugins.Count} plugins, sorting by dependencies...");
+        
+        // Validate dependencies first
+        if (TopologicalPluginSorter.ValidateDependencies(loadedPlugins, out var errors))
+        {
+            Plugin.Log.Info("All plugin dependencies are valid!");
+        }
+        else
+        {
+            Plugin.Log.Warn("Plugin dependency validation failed:");
+            foreach (var error in errors)
+            {
+                Plugin.Log.Warn($"  - {error}");
+            }
+        }
+        
+        // Sort plugins in dependency order
+        var sortedPlugins = TopologicalPluginSorter.SortPlugins(loadedPlugins);
+        
+        Plugin.Log.Info("Plugins in dependency order (dependencies first):");
+        for (int i = 0; i < sortedPlugins.Count; i++)
+        {
+            var plugin = sortedPlugins[i];
+            Plugin.Log.Info($"  {i + 1}. {plugin.Name}");
+            
+            if (plugin.Dependencies!.Count > 0)
+            {
+                var pluginDeps = plugin.Dependencies
+                    .Select(d => Path.GetFileNameWithoutExtension(d))
+                    .Where(d => loadedPlugins.Any(p => p.Name.Equals(d, StringComparison.OrdinalIgnoreCase)))
+                    .ToArray();
+                
+                if (pluginDeps.Any())
+                {
+                    Plugin.Log.Info($"     Depends on: {string.Join(", ", pluginDeps)}");
+                }
+            }
+        }
+        
+        // Now you can initialize plugins in the sorted order
+        // This ensures dependencies are initialized before dependents
+        foreach (var plugin in sortedPlugins)
+        {
+            Plugin.Log.Debug($"Initializing plugin: {plugin.Name}");
+            // Call initialization code here
+            // plugin.CallSetup(); // or whatever your initialization method is
+        }
+    }
+
+    /// <summary>
     /// Example of properly unloading all native plugins when done.
     /// </summary>
     public static void UnloadPluginsExample()
     {
         string pluginDir = Path.Combine(Environment.CurrentDirectory, "NativePlugins");
-        var loader = new NativePluginLoader(pluginDir);
+        var loader = new NativePluginLoader();
         
-        loader.LoadPlugins();
+        loader.LoadPlugins(pluginDir);
         
         // Do work with plugins...
         
