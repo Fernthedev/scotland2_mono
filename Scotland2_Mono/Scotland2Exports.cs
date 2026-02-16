@@ -8,6 +8,7 @@ using System.Linq;
 
 namespace Scotland2_Mono;
 
+
 #region Enums
 
 /// <summary>
@@ -103,14 +104,21 @@ public struct CModResults
 /// <summary>
 /// Result of a load operation with union-like behavior.
 /// </summary>
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+[StructLayout(LayoutKind.Explicit)]
 public struct CLoadResult
 {
+    [FieldOffset(0)]
     public CLoadResultEnum Result;
 
-    // Union field - interpret based on Result
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
-    public string UnionData; // This is a simplified representation
+    [FieldOffset(8)]
+    [MarshalAs(UnmanagedType.I1)]
+    public bool NotFound;
+
+    [FieldOffset(8)]
+    public CModResult Loaded;
+
+    [FieldOffset(8)]
+    public CLoadFailed Failed;
 }
 
 /// <summary>
@@ -124,6 +132,7 @@ public struct CLoadResults
 }
 
 #endregion
+
 
 #region Delegate Callbacks
 
@@ -367,11 +376,36 @@ public static class ModloaderExports
         for (int i = 0; i < _loadedModules.Count; i++)
         {
             var module = _loadedModules[i];
-            cloadResults[i] = new CLoadResult
+            if (module.IsLoaded)
             {
-                Result = module.IsLoaded ? CLoadResultEnum.MatchType_Loaded : CLoadResultEnum.LoadResult_Failed,
-                UnionData = module.IsLoaded ? module.Binary.FilePath : (module.ErrorMessage ?? string.Empty)
-            };
+                cloadResults[i] = new CLoadResult
+                {
+                    Result = CLoadResultEnum.MatchType_Loaded,
+                    Loaded = new CModResult
+                    {
+                        Info = new CModInfo
+                        {
+                            Id = module.Id,
+                            Version = module.Version.ToString(),
+                            VersionLong = module.VersionLong
+                        },
+                        Path = module.Binary.FilePath,
+                        Handle = (IntPtr)module.LibraryHandle
+                    }
+                };
+            }
+            else
+            {
+                cloadResults[i] = new CLoadResult
+                {
+                    Result = CLoadResultEnum.LoadResult_Failed,
+                    Failed = new CLoadFailed
+                    {
+                        Failure = module.ErrorMessage ?? string.Empty,
+                        Path = module.Binary.FilePath
+                    }
+                };
+            }
         }
         int size = Marshal.SizeOf(typeof(CLoadResult));
         IntPtr arrayPtr = Marshal.AllocCoTaskMem(size * cloadResults.Length);

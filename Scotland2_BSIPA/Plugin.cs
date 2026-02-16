@@ -8,7 +8,7 @@ using Scotland2_Mono.Loader;
 using IpaLogger = IPA.Logging.Logger;
 using IpaConfig = IPA.Config.Config;
 
-namespace Scotland2_Mono;
+namespace Scotland2_BSIPA;
 
 [Plugin(RuntimeOptions.DynamicInit), NoEnableDisable]
 internal class Plugin

@@ -3,7 +3,7 @@ using IPA.Config.Stores;
 
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
 
-namespace Scotland2_Mono;
+namespace Scotland2_BSIPA;
 
 internal class PluginConfig
 {

@@ -107,8 +107,8 @@ public static class TopologicalPluginSorter
         // Check for cycles
         if (result.Count != pluginList.Count)
         {
-            Plugin.Log.Warn($"Circular dependency detected in plugins. Unable to determine optimal load order.");
-            Plugin.Log.Warn(
+            StaticLog.Log.Warn($"Circular dependency detected in plugins. Unable to determine optimal load order.");
+            StaticLog.Log.Warn(
                 $"Sorted {result.Count}/{pluginList.Count} plugins. Remaining plugins may have circular dependencies.");
 
             // Add remaining plugins in original order

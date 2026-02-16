@@ -4,8 +4,8 @@
 
   <!-- Plugin Metadata -->
   <PropertyGroup>
-    <PluginId>Scotland2_Mono</PluginId>
-    <PluginName>Scotland2_Mono</PluginName>
+    <PluginId>Scotland2_MonoOld</PluginId>
+    <PluginName>Scotland2_MonoOld</PluginName>
     <Authors>Fernthedev</Authors>
     <Version>0.0.1</Version>
     <GameVersion>1.40.8</GameVersion>

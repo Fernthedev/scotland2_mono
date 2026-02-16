@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="Scotland2_Mono.csproj.user" Condition="Exists('Scotland2_Mono.csproj.user')"/>
+    <Import Project="Scotland2_BSIPA.csproj.user" Condition="Exists('Scotland2_BSIPA.csproj.user')"/>
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
@@ -12,22 +12,24 @@
         <EnableFrameworkPathOverride>true</EnableFrameworkPathOverride>
         <FrameworkPathOverride>$(BeatSaberDir)\Beat Saber_Data\Managed</FrameworkPathOverride>
         <MarkPackageReferencesAsExternallyResolved>false</MarkPackageReferencesAsExternallyResolved>
+        <OutputPath>bin\$(Configuration)\</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="BeatSaberModdingTools.Tasks" Version="2.0.0-beta7">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-<!--        <PackageReference Include="DllExport" Version="1.8.1" />-->
-        <PackageReference Include="DllExporterNet4" Version="2.1.0" />
-        <PackageReference Include="Semver" Version="3.0.0" />
-<!--        <PackageReference Include="UnmanagedExports.Repack.Upgrade" Version="1.2.1" />-->
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Scotland2_Mono.csproj.user" Condition="Exists('Scotland2_Mono.csproj.user')"/>
+        <None Include="Scotland2_BSIPA.csproj.user" Condition="Exists('Scotland2_BSIPA.csproj.user')"/>
     </ItemGroup>
 
+
+    
     <ItemGroup>
         <Reference Include="BeatSaber.ViewSystem">
             <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatSaber.ViewSystem.dll</HintPath>
@@ -100,6 +102,14 @@
             <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject-usage.dll</HintPath>
             <Private>false</Private>
         </Reference>
+    </ItemGroup>
+
+
+    
+    <ItemGroup>
+      <ProjectReference Include="../Scotland2_Mono/Scotland2_Mono.csproj">
+          <SetTargetFramework>net48</SetTargetFramework>
+      </ProjectReference>
     </ItemGroup>
 
 </Project>

@@ -27,36 +27,36 @@ public static class NativePluginLoaderExample
 
         // Load all DLL files from the directory
         var loadedCount = loader.LoadPlugins(pluginDir);
-        Plugin.Log.Info($"Loaded {loadedCount.Count} native plugins");
+        StaticLog.Log.Info($"Loaded {loadedCount.Count} native plugins");
 
         // Get summary
-        Plugin.Log.Info(loader.GetSummary());
+        StaticLog.Log.Info(loader.GetSummary());
 
         // Iterate through all loaded plugins
         foreach (var pluginInfo in loader.GetLoadedPlugins())
         {
-            Plugin.Log.Info($"  - {pluginInfo.Id} (Handle: 0x{pluginInfo.LibraryHandle:X})");
+            StaticLog.Log.Info($"  - {pluginInfo.Id} (Handle: 0x{pluginInfo.LibraryHandle:X})");
         }
 
         // Check for failed plugins
         foreach (var pluginInfo in loader.GetFailedPlugins())
         {
-            Plugin.Log.Warn($"  - Failed: {pluginInfo.Id} - {pluginInfo.ErrorMessage}");
+            StaticLog.Log.Warn($"  - Failed: {pluginInfo.Id} - {pluginInfo.ErrorMessage}");
         }
 
         // Get a specific plugin by name
         var specificPlugin = loader.GetPluginByName("MyNativePlugin");
         if (specificPlugin != null && specificPlugin.IsLoaded)
         {
-            Plugin.Log.Info($"Found plugin: {specificPlugin}");
+            StaticLog.Log.Info($"Found plugin: {specificPlugin}");
             
             // Show dependencies
             if (specificPlugin.Dependencies!.Count > 0)
             {
-                Plugin.Log.Info($"  Dependencies:");
+                StaticLog.Log.Info($"  Dependencies:");
                 foreach (var dep in specificPlugin.Dependencies)
                 {
-                    Plugin.Log.Info($"    - {dep}");
+                    StaticLog.Log.Info($"    - {dep}");
                 }
             }
             
@@ -64,7 +64,7 @@ public static class NativePluginLoaderExample
             IntPtr functionPtr = NativeLoaderHelper.GetFunctionPointer(specificPlugin.LibraryHandle, "MyExportedFunction");
             if (functionPtr != IntPtr.Zero)
             {
-                Plugin.Log.Info($"Found function at: 0x{functionPtr:X}");
+                StaticLog.Log.Info($"Found function at: 0x{functionPtr:X}");
                 
                 // Example: Call the function using delegates
                 // var myFunction = Marshal.GetDelegateForFunctionPointer<MyFunctionDelegate>(functionPtr);
@@ -83,7 +83,7 @@ public static class NativePluginLoaderExample
 
         // Load all DLL files recursively from subdirectories
         var loadedCount = loader.LoadPlugins(pluginDir, "*.dll", SearchOption.AllDirectories);
-        Plugin.Log.Info($"Loaded {loadedCount.Count} native plugins from {pluginDir} and subdirectories");
+        StaticLog.Log.Info($"Loaded {loadedCount.Count} native plugins from {pluginDir} and subdirectories");
     }
 
     /// <summary>
@@ -101,11 +101,11 @@ public static class NativePluginLoaderExample
 
         if (info.IsLoaded)
         {
-            Plugin.Log.Info($"Successfully loaded native plugin from {dllPath}");
+            StaticLog.Log.Info($"Successfully loaded native plugin from {dllPath}");
         }
         else
         {
-            Plugin.Log.Error($"Failed to load native plugin from {dllPath}");
+            StaticLog.Log.Error($"Failed to load native plugin from {dllPath}");
         }
     }
 
@@ -131,7 +131,7 @@ public static class NativePluginLoaderExample
                 
                 // Call the native function
                 int result = myFunction(10, 20);
-                Plugin.Log.Info($"Native function returned: {result}");
+                StaticLog.Log.Info($"Native function returned: {result}");
             }
         }
     }
@@ -150,30 +150,30 @@ public static class NativePluginLoaderExample
         // Get all successfully loaded plugins
         var loadedPlugins = loader.GetLoadedPlugins().ToList();
         
-        Plugin.Log.Info($"Loaded {loadedPlugins.Count} plugins, sorting by dependencies...");
+        StaticLog.Log.Info($"Loaded {loadedPlugins.Count} plugins, sorting by dependencies...");
         
         // Validate dependencies first
         if (TopologicalPluginSorter.ValidateDependencies(loadedPlugins, out var errors))
         {
-            Plugin.Log.Info("All plugin dependencies are valid!");
+            StaticLog.Log.Info("All plugin dependencies are valid!");
         }
         else
         {
-            Plugin.Log.Warn("Plugin dependency validation failed:");
+            StaticLog.Log.Warn("Plugin dependency validation failed:");
             foreach (var error in errors)
             {
-                Plugin.Log.Warn($"  - {error}");
+                StaticLog.Log.Warn($"  - {error}");
             }
         }
         
         // Sort plugins in dependency order
         var sortedPlugins = TopologicalPluginSorter.SortPlugins(loadedPlugins);
         
-        Plugin.Log.Info("Plugins in dependency order (dependencies first):");
+        StaticLog.Log.Info("Plugins in dependency order (dependencies first):");
         for (int i = 0; i < sortedPlugins.Count; i++)
         {
             var plugin = sortedPlugins[i];
-            Plugin.Log.Info($"  {i + 1}. {plugin.Name}");
+            StaticLog.Log.Info($"  {i + 1}. {plugin.Name}");
             
             if (plugin.Dependencies!.Count > 0)
             {
@@ -184,7 +184,7 @@ public static class NativePluginLoaderExample
                 
                 if (pluginDeps.Any())
                 {
-                    Plugin.Log.Info($"     Depends on: {string.Join(", ", pluginDeps)}");
+                    StaticLog.Log.Info($"     Depends on: {string.Join(", ", pluginDeps)}");
                 }
             }
         }
@@ -193,7 +193,7 @@ public static class NativePluginLoaderExample
         // This ensures dependencies are initialized before dependents
         foreach (var plugin in sortedPlugins)
         {
-            Plugin.Log.Debug($"Initializing plugin: {Path.GetFileName(plugin.FilePath)}");
+            StaticLog.Log.Debug($"Initializing plugin: {Path.GetFileName(plugin.FilePath)}");
             // Call initialization code here
             // plugin.CallSetup(); // or whatever your initialization method is
         }
@@ -213,7 +213,7 @@ public static class NativePluginLoaderExample
         
         // When done, unload all native libraries
         loader.UnloadAll();
-        Plugin.Log.Info("All native plugins unloaded");
+        StaticLog.Log.Info("All native plugins unloaded");
     }
 }
 

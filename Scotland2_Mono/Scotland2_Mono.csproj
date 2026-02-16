@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!-- Some features of the latest version of C# aren't available in Beat Saber. Refer to the unity docs for info -->
+        <!-- https://docs.unity3d.com/2022.3/Documentation/Manual/CSharpCompiler.html -->
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <TargetFramework>net48</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <!--        <PackageReference Include="DllExport" Version="1.8.1" />-->
+<!--        <PackageReference Include="DllExporterNet4" Version="2.1.0"/>-->
+
+        <PackageReference Include="Semver" Version="3.0.0"/>
+        <!--        <PackageReference Include="UnmanagedExports.Repack.Upgrade" Version="1.2.1" />-->
+    </ItemGroup>
+
+    <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+        <PackageReference Include="DllExporterNet4" Version="2.1.0"/>
+    </ItemGroup>
+    <ItemGroup Condition=" '$(TargetFramework)' != 'net48' ">
+        <PackageReference Include="DllExport" Version="1.8.1"/>
+    </ItemGroup>
+
+</Project>

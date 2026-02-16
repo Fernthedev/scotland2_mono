@@ -25,7 +25,7 @@ public class NativePluginInfo
     /// <summary>
     /// The name of the plugin, typically set during the setup phase by calling the "setup" function in the native library.
     /// </summary>
-    public string Id { get; private set; }
+    public string Id { get; set; }
 
     /// <summary>
     /// The version of the plugin, typically set during the setup phase by calling the "setup" function in the native library.
@@ -94,17 +94,17 @@ public class NativePluginInfo
         if (!IsLoaded || LibraryHandle == NativeLibraryHandle.Null)
             return;
 
-        Plugin.Log.Info($"Attempting to call setup function in {Id}...");
+        StaticLog.Log.Info($"Attempting to call setup function in {Id}...");
         try
         {
             var setupFuncPtr = NativeLoaderHelper.GetFunctionPointer(LibraryHandle, "setup");
             if (setupFuncPtr == IntPtr.Zero)
             {
-                Plugin.Log.Debug($"No setup function found in {Id}.");
+                StaticLog.Log.Debug($"No setup function found in {Id}.");
                 return;
             }
 
-            Plugin.Log.Info($"Calling setup function in {Id}...");
+            StaticLog.Log.Info($"Calling setup function in {Id}...");
             var setupDelegate = Marshal.GetDelegateForFunctionPointer<ModSetupDelegate>(setupFuncPtr);
             
             CModInfo info = new();
@@ -115,7 +115,7 @@ public class NativePluginInfo
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Error calling setup in {Id}: {ex.Message}");
+            StaticLog.Log.Error($"Error calling setup in {Id}: {ex.Message}");
         }
     }
 
@@ -128,23 +128,23 @@ public class NativePluginInfo
         if (!IsLoaded || LibraryHandle == NativeLibraryHandle.Null)
             return;
 
-        Plugin.Log.Info($"Attempting to load function in {Id}...");
+        StaticLog.Log.Info($"Attempting to load function in {Id}...");
         try
         {
             var loadFuncPtr = NativeLoaderHelper.GetFunctionPointer(LibraryHandle, "load");
             if (loadFuncPtr == IntPtr.Zero)
             {
-                Plugin.Log.Debug($"No load function found in {Id}.");
+                StaticLog.Log.Debug($"No load function found in {Id}.");
                 return;
             }
 
-            Plugin.Log.Info($"Calling load function in {Id}...");
+            StaticLog.Log.Info($"Calling load function in {Id}...");
             var loadDelegate = Marshal.GetDelegateForFunctionPointer<ModLoadDelegate>(loadFuncPtr);
             loadDelegate();
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Error calling load in {Id}: {ex.Message}");
+            StaticLog.Log.Error($"Error calling load in {Id}: {ex.Message}");
         }
     }
 
@@ -156,23 +156,23 @@ public class NativePluginInfo
         if (!IsLoaded || LibraryHandle == NativeLibraryHandle.Null)
             return;
 
-        Plugin.Log.Info($"Calling late_load function in {Id}...");
+        StaticLog.Log.Info($"Calling late_load function in {Id}...");
         try
         {
             var lateLoadFuncPtr = NativeLoaderHelper.GetFunctionPointer(LibraryHandle, "late_load");
             if (lateLoadFuncPtr == IntPtr.Zero)
             {
-                Plugin.Log.Debug($"No late_load function found in {Id}.");
+                StaticLog.Log.Debug($"No late_load function found in {Id}.");
                 return;
             }
 
-            Plugin.Log.Info($"Calling late_load function in {Id}...");
+            StaticLog.Log.Info($"Calling late_load function in {Id}...");
             var lateLoadDelegate = Marshal.GetDelegateForFunctionPointer<ModLateLoadDelegate>(lateLoadFuncPtr);
             lateLoadDelegate();
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Error calling late_load in {Id}: {ex.Message}");
+            StaticLog.Log.Error($"Error calling late_load in {Id}: {ex.Message}");
         }
     }
 
