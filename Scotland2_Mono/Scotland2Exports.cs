@@ -1,6 +1,13 @@
 using System;
 using System.Runtime.InteropServices;
-using DllExporterNet4;
+// #if NETFRAMEWORK
+// using DllExporterNet4;
+using DllExportAttribute = DllExporterNet4.DllExportAttribute;
+// #else
+// using DllExportAttribute = Unmanaged;
+// // using DllExport;
+// // using DllExportAttribute = DllExport.DllExportAttribute;
+// #endif
 using Scotland2_Mono.Loader;
 using System.Collections.Generic;
 using System.Linq;
