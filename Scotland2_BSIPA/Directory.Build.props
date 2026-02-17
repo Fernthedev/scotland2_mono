@@ -4,8 +4,8 @@
 
   <!-- Plugin Metadata -->
   <PropertyGroup>
-    <PluginId>Scotland2_MonoOld</PluginId>
-    <PluginName>Scotland2_MonoOld</PluginName>
+    <PluginId>Scotland2</PluginId>
+    <PluginName>Scotland2</PluginName>
     <Authors>Fernthedev</Authors>
     <Version>0.0.1</Version>
     <GameVersion>1.40.8</GameVersion>
@@ -19,8 +19,6 @@
   <!-- Plugin Dependencies -->
   <ItemGroup>
     <DependsOn Include="BSIPA" Version="^4.3.0"/>
-    <DependsOn Include="BeatSaberMarkupLanguage" Version="^1.12.0"/>
-    <DependsOn Include="SiraUtil" Version="^3.1.0"/>
   </ItemGroup>
   
   <PropertyGroup>
