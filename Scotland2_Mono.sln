@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scotland2_BSIPA", "Scotland
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scotland2_Mono.Tests", "Tests\Scotland2_Mono.Tests.csproj", "{0BCA254D-E4F1-4DAA-AABB-988DB1D5EA73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scotland2_BepInExCore", "Scotland2_BepInExCore\Scotland2_BepInExCore.csproj", "{71AB971F-6238-44CB-907D-5C82C723AD8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{0BCA254D-E4F1-4DAA-AABB-988DB1D5EA73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BCA254D-E4F1-4DAA-AABB-988DB1D5EA73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BCA254D-E4F1-4DAA-AABB-988DB1D5EA73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71AB971F-6238-44CB-907D-5C82C723AD8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71AB971F-6238-44CB-907D-5C82C723AD8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71AB971F-6238-44CB-907D-5C82C723AD8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71AB971F-6238-44CB-907D-5C82C723AD8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
