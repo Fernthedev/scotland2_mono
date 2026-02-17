@@ -1,6 +1,6 @@
 namespace Scotland2_Mono;
 
-public interface ILog
+public interface IScotlandLog
 {
     void Info(string message);
     void Warn(string message);
@@ -10,11 +10,11 @@ public interface ILog
 
 public class StaticLog
 {
-    public static void Initialize(ILog logger)
+    public static void Initialize(IScotlandLog logger)
     {
-        Log = logger;
+        ScotlandLog = logger;
     }
     
 
-    public static ILog Log { get; private set; } = null!;
+    public static IScotlandLog ScotlandLog { get; private set; } = null!;
 }

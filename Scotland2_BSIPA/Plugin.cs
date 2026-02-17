@@ -4,6 +4,7 @@ using IPA.Config.Stores;
 using IPA.Loader;
 using IPA.Utilities;
 using JetBrains.Annotations;
+using Scotland2_Mono;
 using Scotland2_Mono.Loader;
 using IpaLogger = IPA.Logging.Logger;
 using IpaConfig = IPA.Config.Config;
@@ -11,7 +12,7 @@ using IpaConfig = IPA.Config.Config;
 namespace Scotland2_BSIPA;
 
 [Plugin(RuntimeOptions.DynamicInit), NoEnableDisable]
-internal class Plugin
+internal class Plugin : IScotlandLog
 {
     internal static IpaLogger Log { get; private set; } = null!;
 
@@ -29,6 +30,7 @@ internal class Plugin
     public Plugin(IpaLogger ipaLogger, IpaConfig ipaConfig, PluginMetadata pluginMetadata)
     {
         Log = ipaLogger;
+        StaticLog.Initialize(this);
         
         // load in UnityDir/Native/Plugins
         _libraryDirectory = (Path.Combine(UnityGame.InstallPath, "Native", "Libs"));
@@ -88,6 +90,25 @@ internal class Plugin
             plugin.CallLateLoad();
         }
     }
-    
 
+
+    public void Info(string message)
+    {
+        Log.Info(message);
+    }
+
+    public void Warn(string message)
+    {
+        Log.Warn(message);
+    }
+
+    public void Error(string message)
+    {
+        Log.Error(message);
+    }
+
+    public void Debug(string message)
+    {
+        Log.Debug(message);
+    }
 }

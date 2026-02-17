@@ -53,7 +53,7 @@ public class NativePluginLoader
     {
         if (!Directory.Exists(pluginDirectory))
         {
-            StaticLog.Log.Warn($"Plugin directory does not exist: {pluginDirectory}");
+            StaticLog.ScotlandLog.Warn($"Plugin directory does not exist: {pluginDirectory}");
             return [];
         }
 
@@ -66,27 +66,27 @@ public class NativePluginLoader
         }
         catch (Exception ex)
         {
-            StaticLog.Log.Error($"Failed to enumerate DLL files in {pluginDirectory}: {ex.Message}");
+            StaticLog.ScotlandLog.Error($"Failed to enumerate DLL files in {pluginDirectory}: {ex.Message}");
             return [];
         }
 
-        StaticLog.Log.Info($"Found {dllFiles.Length} DLL file(s) in {pluginDirectory}");
+        StaticLog.ScotlandLog.Info($"Found {dllFiles.Length} DLL file(s) in {pluginDirectory}");
 
         var binaries = dllFiles.Select(path => new NativeBinary(path)).ToList();
         var sortedBinaries = TopologicalPluginSorter.SortPlugins(binaries);
 
         // Load plugins in sorted order
-        StaticLog.Log.Info($"Sorted {sortedBinaries.Count} binaries");
+        StaticLog.ScotlandLog.Info($"Sorted {sortedBinaries.Count} binaries");
         foreach (var binary in sortedBinaries)
         {
-            StaticLog.Log.Debug($"Plugin: {binary.Name}, Dependencies: {string.Join(", ", binary.Dependencies ?? [])}");
+            StaticLog.ScotlandLog.Debug($"Plugin: {binary.Name}, Dependencies: {string.Join(", ", binary.Dependencies ?? [])}");
         }
 
         var justLoaded = sortedBinaries.Select(LoadPlugin).ToList();
         _pluginInfos.AddRange(justLoaded);
 
 
-        StaticLog.Log.Info($"Loaded {LoadedCount}/{TotalCount} plugins successfully");
+        StaticLog.ScotlandLog.Info($"Loaded {LoadedCount}/{TotalCount} plugins successfully");
         return justLoaded;
     }
 
@@ -101,13 +101,13 @@ public class NativePluginLoader
         if (!File.Exists(dllPath))
         {
             var errorInfo = NativePluginInfo.Error(binary, "File not found");
-            StaticLog.Log.Warn($"DLL file not found: {dllPath}");
+            StaticLog.ScotlandLog.Warn($"DLL file not found: {dllPath}");
             return errorInfo;
         }
 
         try
         {
-            StaticLog.Log.Debug($"Loading native plugin from: {dllPath}");
+            StaticLog.ScotlandLog.Debug($"Loading native plugin from: {dllPath}");
 
             // Load the native DLL
             var handle = NativeLoaderHelper.LoadNativeLibrary(dllPath);
@@ -116,19 +116,19 @@ public class NativePluginLoader
             {
                 var error = NativeLoaderHelper.GetLastError();
                 var errorInfo = NativePluginInfo.Error(binary, $"Failed to load native library: {error}");
-                StaticLog.Log.Error($"Failed to load {Path.GetFileName(dllPath)}: {error}");
+                StaticLog.ScotlandLog.Error($"Failed to load {Path.GetFileName(dllPath)}: {error}");
                 return errorInfo;
             }
 
             var pluginInfo = NativePluginInfo.Loaded(binary, handle);
 
-            StaticLog.Log.Info($"Successfully loaded native plugin: {pluginInfo.Id} (handle: 0x{handle:X})");
+            StaticLog.ScotlandLog.Info($"Successfully loaded native plugin: {pluginInfo.Id} (handle: 0x{handle:X})");
             return pluginInfo;
         }
         catch (Exception ex)
         {
             var errorInfo = NativePluginInfo.Error(binary, $"Unexpected error: {ex.Message}");
-            StaticLog.Log.Error($"Failed to load {Path.GetFileName(dllPath)}: {ex.GetType().Name} - {ex.Message}");
+            StaticLog.ScotlandLog.Error($"Failed to load {Path.GetFileName(dllPath)}: {ex.GetType().Name} - {ex.Message}");
             return errorInfo;
         }
     }
@@ -181,7 +181,7 @@ public class NativePluginLoader
             if (plugin.LibraryHandle != IntPtr.Zero)
             {
                 bool success = NativeLoaderHelper.UnloadNativeLibrary(plugin.LibraryHandle);
-                StaticLog.Log.Debug($"Unloaded {plugin.Id}: {(success ? "Success" : "Failed")}");
+                StaticLog.ScotlandLog.Debug($"Unloaded {plugin.Id}: {(success ? "Success" : "Failed")}");
             }
         }
 
